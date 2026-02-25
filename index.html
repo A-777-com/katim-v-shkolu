@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#2E7D32">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Безопасный маршрут в школу на самокате">
+  <title>Катим в школу 🛴</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header id="topBar">
+    <div class="header-row">
+      <span class="logo">🛴</span>
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Куда едем?" autocomplete="off">
+        <button id="clearSearch" class="btn-icon hidden">✕</button>
+      </div>
+      <button id="profileToggle" class="btn-icon" title="Тип маршрута">🚶</button>
+    </div>
+    <div id="searchResults" class="hidden"></div>
+  </header>
+
+  <!-- ===== NAV PANEL (during navigation) ===== -->
+  <div id="navPanel" class="hidden">
+    <div class="nav-main">
+      <span id="navIcon" class="nav-maneuver">⬆️</span>
+      <div class="nav-text-wrap">
+        <div id="navText" class="nav-instruction-text">Начните движение</div>
+        <div id="navDist" class="nav-dist">—</div>
+      </div>
+    </div>
+    <div class="nav-bottom">
+      <div class="nav-eta"><span id="navETA">—</span><small>прибытие</small></div>
+      <div class="nav-remaining"><span id="navRemain">—</span><small>осталось</small></div>
+      <button id="stopNavBtn" class="btn-stop">■ Стоп</button>
+    </div>
+  </div>
+
+  <!-- ===== MAP ===== -->
+  <div id="map"></div>
+
+  <!-- ===== FABs ===== -->
+  <div id="fabs">
+    <button id="fabLocate" class="fab" title="Моё место">
+      <svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="4" fill="#1976D2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" stroke="#1976D2" stroke-width="2" fill="none"/></svg>
+    </button>
+    <button id="fabMarker" class="fab" title="Добавить метку">⚠️</button>
+  </div>
+
+  <!-- ===== BOTTOM NAV ===== -->
+  <nav id="bottomNav">
+    <button class="tab active" data-tab="map"><span class="tab-icon">🗺️</span><span class="tab-label">Карта</span></button>
+    <button class="tab" data-tab="places"><span class="tab-icon">📍</span><span class="tab-label">Места</span></button>
+    <button class="tab" data-tab="stats"><span class="tab-icon">📊</span><span class="tab-label">Поездки</span></button>
+    <button class="tab" data-tab="settings"><span class="tab-icon">⚙️</span><span class="tab-label">Ещё</span></button>
+  </nav>
+
+  <!-- ===== ROUTE SHEET ===== -->
+  <div id="routeSheet" class="sheet hidden">
+    <div class="sheet-handle"></div>
+    <div class="route-header">
+      <h3>🛴 Маршрут готов</h3>
+      <button id="closeRoute" class="btn-icon">✕</button>
+    </div>
+    <div class="route-stats">
+      <div class="r-stat"><span id="rDist" class="r-val">—</span><span class="r-lbl">км</span></div>
+      <div class="r-stat"><span id="rTime" class="r-val">—</span><span class="r-lbl">мин</span></div>
+      <div class="r-stat"><span id="rDangers" class="r-val">0</span><span class="r-lbl">⚠️</span></div>
+    </div>
+    <div id="routeSteps" class="route-steps"></div>
+    <button id="goBtn" class="btn-go">🛴 Поехали!</button>
+  </div>
+
+  <!-- ===== MARKER SHEET ===== -->
+  <div id="markerSheet" class="sheet hidden">
+    <div class="sheet-handle"></div>
+    <h3>Добавить метку</h3>
+    <div class="marker-grid">
+      <button class="mk-btn danger" data-type="busy_road"><span>🚗</span>Дорога</button>
+      <button class="mk-btn danger" data-type="pothole"><span>🕳️</span>Ямы</button>
+      <button class="mk-btn danger" data-type="construction"><span>🚧</span>Ремонт</button>
+      <button class="mk-btn danger" data-type="dogs"><span>🐕</span>Собаки</button>
+      <button class="mk-btn danger" data-type="poor_visibility"><span>🌫️</span>Видимость</button>
+      <button class="mk-btn danger" data-type="steep"><span>⛰️</span>Спуск</button>
+      <button class="mk-btn danger" data-type="crossing"><span>🚶</span>Переход</button>
+      <button class="mk-btn good" data-type="good_surface"><span>✅</span>Покрытие</button>
+      <button class="mk-btn good" data-type="traffic_light"><span>🚦</span>Светофор</button>
+    </div>
+    <p class="hint">Нажмите на карту для размещения</p>
+    <button id="cancelMk" class="btn-secondary">Отмена</button>
+  </div>
+
+  <!-- ===== PLACES PANEL ===== -->
+  <div id="placesPanel" class="panel hidden">
+    <h2>📍 Мои места</h2>
+    <div id="placesList" class="places-list"></div>
+    <button id="addPlaceBtn" class="btn-primary">＋ Добавить место</button>
+  </div>
+
+  <!-- ===== STATS PANEL ===== -->
+  <div id="statsPanel" class="panel hidden">
+    <h2>📊 Мои поездки</h2>
+    <div id="statsSummary" class="stats-grid"></div>
+    <h3>История</h3>
+    <div id="tripsList" class="trips-list"></div>
+  </div>
+
+  <!-- ===== SETTINGS PANEL ===== -->
+  <div id="settingsPanel" class="panel hidden">
+    <h2>⚙️ Настройки</h2>
+    <div class="settings-list">
+      <label class="setting"><span>🔊 Голосовые подсказки</span>
+        <input type="checkbox" id="setVoice" checked><span class="toggle"></span></label>
+      <label class="setting"><span>📳 Вибрация при опасности</span>
+        <input type="checkbox" id="setVibro" checked><span class="toggle"></span></label>
+      <label class="setting"><span>🗺️ Тип маршрута</span>
+        <select id="setProfile"><option value="foot">🚶 Пешком</option><option value="bike">🚲 Велосипед</option></select>
+      </label>
+      <hr>
+      <button class="btn-secondary full" id="exportBtn">📤 Экспорт данных</button>
+      <button class="btn-secondary full" id="importBtn">📥 Импорт данных</button>
+      <input type="file" id="importFile" accept=".json" hidden>
+      <hr>
+      <button class="btn-danger full" id="clearBtn">🗑️ Очистить все данные</button>
+    </div>
+    <div class="about">
+      <p><b>Катим в школу</b> v1.0</p>
+      <p>Безопасный маршрут на самокате 🛴</p>
+    </div>
+  </div>
+
+  <!-- ===== ADD PLACE MODAL ===== -->
+  <div id="placeModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Новое место</h3>
+      <input type="text" id="placeNameInput" placeholder="Название (напр. Школа №5)">
+      <select id="placeIconSelect">
+        <option value="🏫">🏫 Школа</option>
+        <option value="🏠">🏠 Дом</option>
+        <option value="⭐">⭐ Избранное</option>
+        <option value="🏪">🏪 Магазин</option>
+        <option value="🏟️">🏟️ Площадка</option>
+        <option value="📍">📍 Другое</option>
+      </select>
+      <div class="place-btns">
+        <button id="placeHere" class="btn-secondary">📍 Я тут</button>
+        <button id="placeOnMap" class="btn-secondary">🗺️ На карте</button>
+      </div>
+      <div id="placeCoordInfo" class="coord-info"></div>
+      <div class="modal-actions">
+        <button id="savePlaceBtn" class="btn-primary" disabled>Сохранить</button>
+        <button id="cancelPlaceBtn" class="btn-secondary">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INSTALL BANNER ===== -->
+  <div id="installBanner" class="hidden">
+    <span>📲 Установить приложение</span>
+    <button id="installBtn" class="btn-install">Установить</button>
+    <button id="dismissInstall" class="btn-icon">✕</button>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
