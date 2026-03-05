@@ -850,7 +850,7 @@
 
   function updateProfileButton() {
     const btn = document.getElementById('profileToggle');
-    btn.textContent = S.settings.profile === 'bike' ? '🚲' : '🚶';
+    btn.textContent = S.settings.profile === 'bike' ? '🚲' : '🛴';
   }
 
   function exportData() {
@@ -923,7 +923,7 @@
       S.settings.profile = S.settings.profile === 'foot' ? 'bike' : 'foot';
       updateProfileButton();
       saveData();
-      toast(`Маршрут: ${S.settings.profile === 'bike' ? '🚲 Велосипедный' : '🚶 Пешеходный'}`);
+      toast(`Маршрут: ${S.settings.profile === 'bike' ? '🚲 Велосипедный' : '🛴 Самокатный'}`);
       // перестроить маршрут если есть
       if (S.destination && S.userPos) {
         buildRoute(S.userPos.lat, S.userPos.lng, S.destination.lat, S.destination.lng);
@@ -1188,5 +1188,6 @@
   } else {
     init();
   }
+
 
 })();
