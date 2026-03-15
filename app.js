@@ -43,7 +43,7 @@
     busy_road:       { emoji: '🚗', label: 'Оживлённая дорога', danger: true, voice: 'Впереди оживлённая дорога! Будьте осторожны!' },
     pothole:         { emoji: '🕳️', label: 'Ямы и выбоины',    danger: true, voice: 'Внимание, ямы на дороге!' },
     construction:    { emoji: '🚧', label: 'Ремонт дороги',     danger: true, voice: 'Впереди ремонт дороги!' },
-    dogs:            { emoji: '🐕', label: 'Злые собаки',       danger: true, voice: 'Осторожно, собаки!' },
+    dogs:            { emoji: '🐺', label: 'Злые собаки',       danger: true, voice: 'Осторожно, собаки!' },
     poor_visibility: { emoji: '🌫️', label: 'Плохая видимость', danger: true, voice: 'Зона плохой видимости!' },
     steep:           { emoji: '⛰️', label: 'Крутой спуск',     danger: true, voice: 'Впереди крутой спуск! Притормозите!' },
     crossing:        { emoji: '🚶', label: 'Переход',           danger: true, voice: 'Пешеходный переход. Остановитесь и посмотрите по сторонам!' },
